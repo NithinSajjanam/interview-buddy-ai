@@ -18,9 +18,10 @@ interface FeedbackResultsProps {
   results: InterviewResult;
   onRetry: () => void;
   onHome: () => void;
+  onViewPlan?: () => void;
 }
 
-const FeedbackResults = ({ results, onRetry, onHome }: FeedbackResultsProps) => {
+const FeedbackResults = ({ results, onRetry, onHome, onViewPlan }: FeedbackResultsProps) => {
   const getScoreColor = (score: number) => {
     if (score >= 85) return "text-success";
     if (score >= 70) return "text-primary";

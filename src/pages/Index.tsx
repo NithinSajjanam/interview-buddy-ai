@@ -6,25 +6,37 @@ import InterviewSession, { type InterviewResult } from "@/components/InterviewSe
 import FeedbackResults from "@/components/FeedbackResults";
 import Dashboard from "@/components/Dashboard";
 import Navbar from "@/components/Navbar";
+import AuthPage from "@/components/AuthPage";
+import InterviewSetup, { type InterviewConfig } from "@/components/InterviewSetup";
+import ProgressTracker from "@/components/ProgressTracker";
+import ImprovementPlan from "@/components/ImprovementPlan";
 
-type View = "home" | "dashboard" | "interview" | "results";
+type View = "home" | "dashboard" | "interview" | "results" | "auth" | "setup" | "progress" | "improvement";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>("home");
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  const [selectedMode, setSelectedMode] = useState<"voice" | "text" | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [interviewConfig, setInterviewConfig] = useState<InterviewConfig | null>(null);
   const [interviewResults, setInterviewResults] = useState<InterviewResult | null>(null);
   
   const roleRef = useRef<HTMLDivElement>(null);
 
   const handleGetStarted = () => {
-    roleRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!isAuthenticated) {
+      setCurrentView("auth");
+    } else {
+      setCurrentView("setup");
+    }
   };
 
-  const handleStartInterview = () => {
-    if (selectedRole && selectedMode) {
-      setCurrentView("interview");
-    }
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    setCurrentView("setup");
+  };
+
+  const handleStartInterview = (config: InterviewConfig) => {
+    setInterviewConfig(config);
+    setCurrentView("interview");
   };
 
   const handleInterviewEnd = (results: InterviewResult) => {
@@ -38,28 +50,35 @@ const Index = () => {
   };
 
   const handleHome = () => {
-    setSelectedRole(null);
-    setSelectedMode(null);
+    setInterviewConfig(null);
     setInterviewResults(null);
     setCurrentView("home");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleNavigate = (view: "home" | "dashboard") => {
+  const handleNavigate = (view: "home" | "dashboard" | "progress" | "improvement") => {
     setCurrentView(view);
     if (view === "home") {
-      setSelectedRole(null);
-      setSelectedMode(null);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
+  // Auth view
+  if (currentView === "auth") {
+    return <AuthPage onLogin={handleLogin} onBack={handleHome} />;
+  }
+
+  // Setup view
+  if (currentView === "setup") {
+    return <InterviewSetup onStart={handleStartInterview} onBack={handleHome} />;
+  }
+
   // Interview session view
-  if (currentView === "interview" && selectedRole && selectedMode) {
+  if (currentView === "interview" && interviewConfig) {
     return (
       <InterviewSession
-        role={selectedRole}
-        mode={selectedMode}
+        role={interviewConfig.role}
+        mode={interviewConfig.mode}
         onEnd={handleInterviewEnd}
         onBack={handleHome}
       />
@@ -73,6 +92,27 @@ const Index = () => {
         results={interviewResults}
         onRetry={handleRetry}
         onHome={handleHome}
+        onViewPlan={() => setCurrentView("improvement")}
+      />
+    );
+  }
+
+  // Progress view
+  if (currentView === "progress") {
+    return (
+      <ProgressTracker
+        onBack={() => setCurrentView("dashboard")}
+        onStartInterview={() => setCurrentView("setup")}
+      />
+    );
+  }
+
+  // Improvement plan view
+  if (currentView === "improvement") {
+    return (
+      <ImprovementPlan
+        onBack={() => setCurrentView("dashboard")}
+        onStartInterview={() => setCurrentView("setup")}
       />
     );
   }
@@ -83,12 +123,11 @@ const Index = () => {
       <>
         <Navbar currentView={currentView} onNavigate={handleNavigate} />
         <div className="pt-16">
-          <Dashboard onStartInterview={() => {
-            setCurrentView("home");
-            setTimeout(() => {
-              roleRef.current?.scrollIntoView({ behavior: "smooth" });
-            }, 100);
-          }} />
+          <Dashboard 
+            onStartInterview={() => setCurrentView("setup")}
+            onViewProgress={() => setCurrentView("progress")}
+            onViewPlan={() => setCurrentView("improvement")}
+          />
         </div>
       </>
     );
@@ -102,27 +141,18 @@ const Index = () => {
       <div className="pt-16">
         <HeroSection onGetStarted={handleGetStarted} />
         
-        <div ref={roleRef}>
-          <RoleSelection
-            selectedRole={selectedRole}
-            onSelectRole={setSelectedRole}
-          />
-        </div>
-        
-        <InterviewMode
-          selectedMode={selectedMode}
-          onSelectMode={setSelectedMode}
-          onStartInterview={handleStartInterview}
-          canStart={!!selectedRole && !!selectedMode}
-        />
-        
         {/* Footer */}
         <footer className="py-12 px-6 border-t border-border">
           <div className="container mx-auto max-w-5xl">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-muted-foreground">
-                © 2024 InterviewAI. Built with AI for aspiring developers.
-              </p>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  © 2024 InterviewAI. Built with AI for aspiring developers.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Google AI Hackathon Project • Team InterviewAI
+                </p>
+              </div>
               <div className="flex gap-6">
                 <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                   Privacy
