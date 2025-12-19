@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Brain, BarChart3, User, Menu, X } from "lucide-react";
 
 interface NavbarProps {
-  currentView: "home" | "dashboard" | "interview" | "results";
-  onNavigate: (view: "home" | "dashboard") => void;
+  currentView: "home" | "dashboard" | "interview" | "results" | "progress" | "improvement";
+  onNavigate: (view: "home" | "dashboard" | "progress" | "improvement") => void;
 }
 
 const Navbar = ({ currentView, onNavigate }: NavbarProps) => {

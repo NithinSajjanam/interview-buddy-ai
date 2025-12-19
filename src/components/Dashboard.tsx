@@ -13,6 +13,8 @@ import {
 
 interface DashboardProps {
   onStartInterview: () => void;
+  onViewProgress?: () => void;
+  onViewPlan?: () => void;
 }
 
 const mockStats = {
@@ -33,7 +35,7 @@ const mockStats = {
   ],
 };
 
-const Dashboard = ({ onStartInterview }: DashboardProps) => {
+const Dashboard = ({ onStartInterview, onViewProgress, onViewPlan }: DashboardProps) => {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="container mx-auto max-w-6xl">
